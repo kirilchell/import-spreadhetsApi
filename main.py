@@ -48,15 +48,14 @@ def process_and_upload_files(local_file_path, chunksize, file_objects, service_d
         encoding = detect_encoding(csv_file) 
         logging.info(f"Detected encoding: {encoding}")  # вывод кодировки в логи 
 
-        spreadsheet_ids = set()  # для хранения уникальных id таблиц
+        
 
         logging.info("Beginning chunk processing...")
         
 
-        # Используем itertools.cycle для циклического перебора учетных данных
-        credentials_cycle = itertools.cycle(credentials_list)
+        
 
-        for chunk_id, chunk in enumerate(pd.read_csv(csv_file, encoding=encoding, sep=';', chunksize=chunksize, dtype=str)): 
+        for chunk_id, chunk in enumerate(pd.read_csv(csv_file, encoding=encoding, sep=',', chunksize=chunksize, dtype=str)): 
             logging.info(f'Processing chunk number: {chunk_id}') 
 
             if header is None: 
