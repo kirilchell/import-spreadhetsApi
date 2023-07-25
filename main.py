@@ -69,11 +69,8 @@ def process_and_upload_files(local_file_path, chunksize, file_objects, service_d
             logging.info("Chunk data processed.")
             chunk = chunk[header] 
             chunk = chunk.astype(str) 
-
-            spreadsheet = process_last_modified_file(file_objects, service_drive)
-            # Используем next(credentials_cycle) для получения следующего набора учетных данных
-            credentials = next(credentials_cycle)
-            spreadsheet_id = upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet)
+                
+            upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet)
             spreadsheet_ids.add(spreadsheet_id)
             logging.info("Chunk uploaded.")
 
