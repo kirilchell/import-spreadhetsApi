@@ -61,6 +61,28 @@ def main(event, context):
 
     return 'Файл успешно загружен.'
 
+def get_credentials(key_filename): 
+     # Создайте клиент Cloud Storage. 
+     storage_client = storage.Client() 
+  
+     # Получите объект Blob для файла ключа сервисного аккаунта. 
+     bucket = storage_client.get_bucket('ia_sam') 
+     blob = bucket.blob(key_filename) 
+  
+     # Скачайте JSON файл ключа сервисного аккаунта. 
+     key_json_string = blob.download_as_text() 
+  
+     # Загрузите ключ сервисного аккаунта из JSON строки. 
+     key_dict = json.loads(key_json_string) 
+  
+     # Создайте учетные данные из ключа сервисного аккаунта. 
+     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 
+               'https://www.googleapis.com/auth/drive.file'] 
+     credentials = service_account.Credentials.from_service_account_info( 
+         key_dict, scopes=SCOPES) 
+  
+     return credentials
+
 def read_csv_gcs(bucket_name, blob_name): 
     storage_client = storage.Client() 
     bucket = storage_client.get_bucket(bucket_name) 
