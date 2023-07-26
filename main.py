@@ -88,47 +88,42 @@ def get_credentials(key_filename):
 
     logging.info("Credentials received successfully.")
     return credentials
-
-def read_csv_gcs(bucket_name, blob_name): 
-    storage_client = storage.Client() 
-    bucket = storage_client.get_bucket(bucket_name) 
-    blob = storage.Blob(blob_name, bucket) 
-    content = blob.download_as_text().decode('utf-8') 
-    # Если вы хотите использовать detect_encoding, вам нужно вызвать ее здесь
-    # encoding = detect_encoding(content)
+def read_csv_gcs(bucket_name, blob_name):
+    logging.info("Reading CSV file from Google Cloud Storage.")
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = storage.Blob(blob_name, bucket)
+    content = blob.download_as_text().decode('utf-8')
+    logging.info("CSV file read successfully.")
     return pd.read_csv(StringIO(content))
 
 def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name):  
+    logging.info("Start processing and uploading files.")
     try:  
         header = None  
-
+        logging.info("Reading CSV file.")
         df = read_csv_gcs(bucket_name, data_file_path)
-
-        logging.info("Reading and processing CSV file...")  
-
-        logging.info("Beginning chunk processing...") 
-
+        logging.info("CSV file read successfully.")
+  
+        logging.info("Beginning chunk processing.")
         for chunk_id, chunk in enumerate(np.array_split(df, chunksize)):  
-            logging.info(f'Processing chunk number: {chunk_id}')  
-
+            logging.info(f'Processing chunk number: {chunk_id}')
+  
             if header is None:  
-                logging.info("Processing header...")  
-                header = chunk.columns.values[:8].tolist() + ['Инфо Магазин']  
-                logging.info("Header processed.") 
+                logging.info("Processing header.")
+                header = chunk.columns.values[:8].tolist() + ['Инфо Магазин']
+                logging.info("Header processed.")
+  
+            logging.info("Processing chunk data.")
+            chunk['Инфо Магазин'] = chunk.iloc[:, 8:].apply(lambda row: '_'.join(row.dropna().astype(str)), axis=1)
+            logging.info("Chunk data processed.")
+            chunk = chunk[header]
+            chunk = chunk.astype(str)
 
-            logging.info("Processing chunk data...")  
-            chunk['Инфо Магазин'] = chunk.iloc[:, 8:].apply(lambda row: '_'.join(row.dropna().astype(str)), axis=1)  
-            logging.info("Chunk data processed.") 
-            chunk = chunk[header]  
-            chunk = chunk.astype(str)  
-
-            append_datagapi(credentials, chunk, spreadsheet_id) 
-
-            logging.info("Chunk uploaded.") 
-
-    finally: 
+            append_datagapi(credentials, chunk, spreadsheet_id)
+            logging.info("Chunk uploaded.")
+    finally:
         logging.info("Done processing and uploading files.")
-
 
 def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
     logging.info(f"Authorizing credentials account: {credentials.service_account_email}")
@@ -136,12 +131,9 @@ def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
     sheet = service_sheet.spreadsheets()
     spreadsheet = sheet.get(spreadsheetId=spreadsheet_id).execute()
 
-    # Получить все листы в таблице
     sheets = spreadsheet.get('sheets', '')
-    # Найти лист с названием "transit"
     worksheet = next((item for item in sheets if item["properties"]["title"] == "transit"), None)
     if worksheet is not None:
-        # Получить id листа
         worksheet_id = worksheet["properties"]["sheetId"]
 
     last_row = 0
@@ -149,11 +141,12 @@ def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
 
     for i, chunk in enumerate(chunks):
         try:
+            logging.info(f"Appending chunk {i+1} to the worksheet.")
             chunk_str = chunk.astype(str)
             chunk_list = chunk_str.values.tolist()
             request = service_sheet.spreadsheets().values().append(
                 spreadsheetId=spreadsheet_id,
-                range=f"transit!A{last_row + 1}",  # Вставляем данные в первую пустую строку
+                range=f"transit!A{last_row + 1}",
                 valueInputOption='RAW',
                 insertDataOption='INSERT_ROWS',
                 body={'values': chunk_list}
@@ -165,5 +158,5 @@ def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
             continue
         time.sleep(1)
 
-    print("Data appended.")
+    logging.info("Data appended.")
     return spreadsheet_id
