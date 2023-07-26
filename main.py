@@ -22,6 +22,8 @@ import itertools
 from google.cloud import storage 
 from google.cloud import pubsub_v1
 import base64
+from io import StringIO
+
 
 chunksize = 40000
 
@@ -59,16 +61,22 @@ def main(event, context):
 
     return 'Файл успешно загружен.'
 
+def read_csv_gcs(bucket_name, blob_name):
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = storage.Blob(blob_name, bucket)
+    content = blob.download_as_text().decode('utf-8')
+    return pd.read_csv(StringIO(content))
+
+
 
 def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id): 
 
     try: 
-
-        csv_file = data_file_path[:-3] 
-
+     
         header = None 
         chunkssize = 40000
-
+        df = read_csv_gcs(bucket_name, data_file_path)
         logging.info("Reading and processing CSV file...") 
         encoding = detect_encoding(csv_file) 
         logging.info(f"Detected encoding: {encoding}")  # вывод кодировки в логи 
