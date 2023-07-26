@@ -1,4 +1,26 @@
-import base64
+import os 
+import json 
+import logging 
+import pandas as pd 
+import numpy as np 
+import requests 
+from pydrive.auth import GoogleAuth 
+from pydrive.drive import GoogleDrive 
+from google.oauth2 import service_account 
+import time 
+from googleapiclient.discovery import build 
+from googleapiclient.http import MediaFileUpload 
+from google.cloud import storage 
+from flask import escape 
+import gspread 
+from google.auth.transport.requests import Request 
+import datetime 
+from googleapiclient.errors import HttpError 
+import gc as garbage_collector 
+import chardet 
+import itertools 
+from google.cloud import storage 
+from google.cloud import pubsub_v1
 
 def main(event, context):
     # event['data'] содержит сообщение в формате base64.
