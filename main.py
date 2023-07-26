@@ -117,7 +117,7 @@ def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet
             chunk = chunk[header]  
             chunk = chunk.astype(str)  
 
-            upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet_id) 
+            upload_to_gsheetsgapi(credentials, chunk, spreadsheet_id) 
 
             logging.info("Chunk uploaded.")
 
@@ -160,7 +160,7 @@ def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet
         logging.info("Done processing and uploading files.")
 
 
-def upload_to_gsheetsgapi(credentials, file_objects, service_drive, chunks, spreadsheet): 
+def upload_to_gsheetsgapi(credentials, chunk, spreadsheet_id): 
 
     for i, chunk in enumerate(chunks): 
         
@@ -172,8 +172,6 @@ def upload_to_gsheetsgapi(credentials, file_objects, service_drive, chunks, spre
             continue
         try:
             print("Appending data to spreadsheet...") 
-            file = file_objects[i % len(file_objects)]  # выбираем соответствующий файл для чанка
-            spreadsheet_id = spreadsheet.id  # get the spreadsheet ID from the spreadsheet object 
             worksheet = spreadsheet.worksheet("transit")
             #worksheet_name = worksheet.title 
             worksheet_id = worksheet.id  # get the worksheet ID from the worksheet object 
