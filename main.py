@@ -23,6 +23,8 @@ from google.cloud import storage
 from google.cloud import pubsub_v1
 import base64
 
+chunkssize = 40000
+
 def main(event, context):
     # event['data'] содержит сообщение в формате base64.
     # Декодируем это сообщение .
@@ -38,9 +40,9 @@ def main(event, context):
         credentials = get_credentials(key_filename)
 
         # Ваша оригинальная строка здесь была:
-        # process_and_upload_files(data_file_path, chunksize, file_objects, service_drive, credentials_list) 
+        # process_and_upload_files(data_file_path, chunksize, file_objects, spreadsheet_id, credentials) 
         # Вы заменили credentials_list на credentials, и убрали service_drive
-        process_and_upload_files(data_file_path, chunksize, file_objects, credentials)
+        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id)
 
         if os.path.isfile(data_file_path):
             os.remove(data_file_path)
@@ -58,11 +60,11 @@ def main(event, context):
     return 'Файл успешно загружен.'
 
 
-def process_and_upload_files(local_file_path, chunksize, file_objects, service_drive, credentials_list): 
+def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id): 
 
     try: 
 
-        csv_file = local_file_path[:-3] 
+        csv_file = data_file_path[:-3] 
 
         header = None 
         chunkssize = 40000
@@ -92,7 +94,7 @@ def process_and_upload_files(local_file_path, chunksize, file_objects, service_d
             chunk = chunk[header] 
             chunk = chunk.astype(str) 
                 
-            upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet)
+            upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet_id)
             spreadsheet_ids.add(spreadsheet_id)
             logging.info("Chunk uploaded.")
 
