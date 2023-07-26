@@ -61,49 +61,42 @@ def main(event, context):
 
     return 'Файл успешно загружен.'
 
-def read_csv_gcs(bucket_name, blob_name):
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
-    blob = storage.Blob(blob_name, bucket)
-    content = blob.download_as_text().decode('utf-8')
+def read_csv_gcs(bucket_name, blob_name): 
+    storage_client = storage.Client() 
+    bucket = storage_client.get_bucket(bucket_name) 
+    blob = storage.Blob(blob_name, bucket) 
+    content = blob.download_as_text().decode('utf-8') 
+    # Если вы хотите использовать detect_encoding, вам нужно вызвать ее здесь
+    # encoding = detect_encoding(content)
     return pd.read_csv(StringIO(content))
 
+def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name):  
+    try:  
+        header = None  
+        chunksize = 40000 
 
-
-def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id): 
-
-    try: 
-     
-        header = None 
-        chunkssize = 40000
         df = read_csv_gcs(bucket_name, data_file_path)
-        logging.info("Reading and processing CSV file...") 
-        encoding = detect_encoding(csv_file) 
-        logging.info(f"Detected encoding: {encoding}")  # вывод кодировки в логи 
 
-        
+        logging.info("Reading and processing CSV file...")  
 
-        logging.info("Beginning chunk processing...")
-        
+        logging.info("Beginning chunk processing...") 
 
-        
+        for chunk_id, chunk in enumerate(np.array_split(df, chunksize)):  
+            logging.info(f'Processing chunk number: {chunk_id}')  
 
-        for chunk_id, chunk in enumerate(pd.read_csv(csv_file, encoding=encoding, sep=',', chunksize=chunksize, dtype=str)): 
-            logging.info(f'Processing chunk number: {chunk_id}') 
+            if header is None:  
+                logging.info("Processing header...")  
+                header = chunk.columns.values[:8].tolist() + ['Инфо Магазин']  
+                logging.info("Header processed.") 
 
-            if header is None: 
-                logging.info("Processing header...") 
-                header = chunk.columns.values[:8].tolist() + ['Инфо Магазин'] 
-                logging.info("Header processed.")
+            logging.info("Processing chunk data...")  
+            chunk['Инфо Магазин'] = chunk.iloc[:, 8:].apply(lambda row: '_'.join(row.dropna().astype(str)), axis=1)  
+            logging.info("Chunk data processed.") 
+            chunk = chunk[header]  
+            chunk = chunk.astype(str)  
 
-            logging.info("Processing chunk data...") 
-            chunk['Инфо Магазин'] = chunk.iloc[:, 8:].apply(lambda row: '_'.join(row.dropna().astype(str)), axis=1) 
-            logging.info("Chunk data processed.")
-            chunk = chunk[header] 
-            chunk = chunk.astype(str) 
-                
-            upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet_id)
-            
+            upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet_id) 
+
             logging.info("Chunk uploaded.")
 
         logging.info("Beginning renaming process...")
