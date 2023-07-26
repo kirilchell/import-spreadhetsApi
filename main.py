@@ -33,10 +33,9 @@ def main(event, context):
     # event['data'] содержит сообщение в формате base64.
     # Декодируем это сообщение .
     if 'data' in event:
-        #base64_message = event['data']
-        base64_message = base64_message.encode('utf-8')
-        decoded_message = base64.b64decode(base64_message).decode('utf-8')
-        #decoded_message = base64.b64decode(base64_message).decode('utf-8')
+        base64_message = event['data'].encode('utf-8')  # make sure we're getting the message from event['data']
+        decoded_message = base64.b64decode(base64_message).decode('utf-8') 
+Тепе
         data_file_path, key_filename, spreadsheet_id = decoded_message.split(',')
     else:
         logging.error("No data provided.")
