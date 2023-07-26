@@ -119,66 +119,28 @@ def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet
 
             append_datagapi(credentials, chunk, spreadsheet_id) 
 
-            logging.info("Chunk uploaded.")
-
-        logging.info("Beginning renaming process...")
-
-        service_sheet = build('sheets', 'v4', credentials=credentials) 
-        gc = gspread.authorize(credentials)
-        
-        for spreadsheet_id in spreadsheet_ids: 
-            try:
-                logging.info(f"Renaming sheet to 'ready' in spreadsheet {spreadsheet_id}...") 
-                spreadsheet = gc.open_by_key(spreadsheet_id)
-                worksheet = spreadsheet.worksheet("transit") 
-                worksheet_id = worksheet.id
-                request = service_sheet.spreadsheets().batchUpdate( 
-                    spreadsheetId=spreadsheet_id, 
-                    body={ 
-                        "requests": [ 
-                            { 
-                                "updateSheetProperties": { 
-                                    "properties": { 
-                                       
-                                        "title": "ready" 
-                                    }, 
-                                    "fields": "title" 
-                                } 
-                            } 
-                        ] 
-                    } 
-                ) 
-                logging.info("Request prepared.")
-                response = request.execute() 
-                logging.info("Request executed.")
-            except Exception as e: 
-                logging.error(f"Error renaming sheet: {str(e)}")  # добавляем str(e) для вывода подробностей ошибки
-    except Exception as e: 
-        logging.error(f"An error occurred: {e}") 
+            logging.info("Chunk uploaded.") 
 
     finally: 
         logging.info("Done processing and uploading files.")
 
 
 def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
-    print("Data appended.")
-            logging.info(f"Authorizing credentials account: {credentials.service_account_email}")
-            service_sheet = build('sheets', 'v4', credentials=credentials)
-            sheet = service.spreadsheets()
-            spreadsheet = sheet.get(spreadsheetId=spreadsheet_id).execute()
-            worksheet = spreadsheet.worksheet("transit")
-            worksheet_id = worksheet
-  
-    # Получаем текущее количество заполненных строк на листе
-    # response = service_sheet.spreadsheets().values().get(
-    #    spreadsheetId=spreadsheet_id,
-    #    range=worksheet_id,
-    #    majorDimension='ROWS'
-    #).execute()
-    #values = response.get('values', [])
-    #last_row = len(values)
+    logging.info(f"Authorizing credentials account: {credentials.service_account_email}")
+    service_sheet = build('sheets', 'v4', credentials=credentials)
+    sheet = service_sheet.spreadsheets()
+    spreadsheet = sheet.get(spreadsheetId=spreadsheet_id).execute()
+
+    # Получить все листы в таблице
+    sheets = spreadsheet.get('sheets', '')
+    # Найти лист с названием "transit"
+    worksheet = next((item for item in sheets if item["properties"]["title"] == "transit"), None)
+    if worksheet is not None:
+        # Получить id листа
+        worksheet_id = worksheet["properties"]["sheetId"]
+
     last_row = 0
-    chunks = [df[i:i + chunk_size] for i in range(0, df.shape[0], chunk_size)]
+    chunks = [chunk[i:i + chunk_size] for i in range(0, chunk.shape[0], chunk_size)]
 
     for i, chunk in enumerate(chunks):
         try:
@@ -192,9 +154,11 @@ def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
                 body={'values': chunk_list}
             )
             response = request.execute()
-            logging.info(f"Successfully appended chunk {i+1} of {len(chunks)} to the worksheet.")
+            logging.info(f"Successfully appended chunk {i + 1} of {len(chunks)} to the worksheet.")
         except Exception as e:
-            logging.error(f"Error appending chunk {i+1} to the worksheet: {e}")
+            logging.error(f"Error appending chunk {i + 1} to the worksheet: {e}")
             continue
         time.sleep(1)
-        return spreadsheet_id
+
+    print("Data appended.")
+    return spreadsheet_id
