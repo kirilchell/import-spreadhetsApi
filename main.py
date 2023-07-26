@@ -29,6 +29,8 @@ chunksize = 40000
 bucket_name = 'csv-chunk'
 
 def main(event, context):
+    logging.info(f"Event: {event}")
+    logging.info(f"context: {context}")
     logging.info("Start main function.")
     # event['data'] содержит сообщение в формате base64.
     # Декодируем это сообщение .
