@@ -38,10 +38,12 @@ def main(event, context):
     if 'data' in event:  
         base64_message = event['data'] 
         # проверяем, является ли 'data' уже строкой 
-        if not isinstance(base64_message, str): 
-            base64_message = base64_message.encode('utf-8')  # make sure we're getting the message from event['data']  
-        decoded_message = base64.b64decode(base64_message).decode('utf-8')  
-        data_file_path, key_filename, spreadsheet_id = decoded_message.split(',')  
+        if isinstance(base64_message, str): 
+            decoded_message = base64.b64decode(base64_message).decode('utf-8')  
+            data_file_path, key_filename, spreadsheet_id = decoded_message.split(',')  
+        else: 
+            logging.error("base64 message is not a string.")  
+            return 'Error: base64 message is not a string.' 
     else:  
         logging.error("No data provided.")  
         return 'No data provided.'  
