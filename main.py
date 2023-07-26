@@ -88,6 +88,7 @@ def get_credentials(key_filename):
 
     logging.info("Credentials received successfully.")
     return credentials
+
 def read_csv_gcs(bucket_name, blob_name):
     logging.info("Reading CSV file from Google Cloud Storage.")
     storage_client = storage.Client()
