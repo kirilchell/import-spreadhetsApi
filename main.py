@@ -42,10 +42,7 @@ def main(event, context):
     try:
         credentials = get_credentials(key_filename)
 
-        # Ваша оригинальная строка здесь была:
-        # process_and_upload_files(data_file_path, chunksize, file_objects, spreadsheet_id, credentials) 
-        # Вы заменили credentials_list на credentials, и убрали service_drive
-        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id)
+       process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id)
 
         if os.path.isfile(data_file_path):
             os.remove(data_file_path)
