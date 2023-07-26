@@ -24,7 +24,7 @@ from google.cloud import pubsub_v1
 
 def main(event, context):
     # event['data'] содержит сообщение в формате base64.
-    # Декодируем это сообщение.
+    # Декодируем это сообщение .
     if 'data' in event:
         base64_message = event['data']
         decoded_message = base64.b64decode(base64_message).decode('utf-8')
