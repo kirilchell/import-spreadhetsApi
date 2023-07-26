@@ -95,7 +95,7 @@ def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet
             chunk = chunk.astype(str) 
                 
             upload_to_gsheetsgapi(credentials, file_objects, service_drive, [chunk], spreadsheet_id)
-            spreadsheet_ids.add(spreadsheet_id)
+            
             logging.info("Chunk uploaded.")
 
         logging.info("Beginning renaming process...")
