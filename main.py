@@ -21,6 +21,7 @@ import chardet
 import itertools 
 from google.cloud import storage 
 from google.cloud import pubsub_v1
+import base64
 
 def main(event, context):
     # event['data'] содержит сообщение в формате base64.
