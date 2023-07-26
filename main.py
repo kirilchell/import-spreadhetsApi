@@ -46,7 +46,7 @@ def main(event, context):
         credentials = get_credentials(key_filename)
 
         logging.info("Start processing and uploading files.")
-        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id)
+        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
 
         if os.path.isfile(data_file_path):
             os.remove(data_file_path)
