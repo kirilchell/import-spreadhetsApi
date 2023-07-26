@@ -123,7 +123,6 @@ def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet
 
         logging.info("Beginning renaming process...")
 
-        credentials = credentials_list[0]
         service_sheet = build('sheets', 'v4', credentials=credentials) 
         gc = gspread.authorize(credentials)
         
