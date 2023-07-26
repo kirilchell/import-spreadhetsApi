@@ -11,3 +11,4 @@ flask
 gdown
 gspread
 chardet
+google-cloud-pubsub
