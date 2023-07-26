@@ -28,46 +28,48 @@ from io import StringIO
 chunksize = 40000
 bucket_name = 'csv-chunk'
 
-def main(event, context): 
-     logging.info(f"Event: {event}") 
-     logging.info(f"context: {context}") 
-     logging.info("Start main function.") 
-     # event['data'] содержит сообщение в формате base64. 
-     # Декодируем это сообщение . 
-     if 'data' in event: 
-         base64_message = event['data']
-         # проверяем, является ли 'data' уже строкой
-         if not isinstance(base64_message, str):
-             base64_message = base64_message.encode('utf-8')  # make sure we're getting the message from event['data'] 
-         decoded_message = base64.b64decode(base64_message).decode('utf-8') 
-         data_file_path, key_filename, spreadsheet_id = decoded_message.split(',') 
-     else: 
-         logging.error("No data provided.") 
-         return 'No data provided.' 
-  
-     session = requests.Session() 
-     try: 
-         logging.info("Start getting credentials.") 
-         credentials = get_credentials(key_filename)
+def main(event, context):  
+    logging.info(f"Event: {event}")  
+    logging.info(f"context: {context}")  
+    logging.info("Start main function.")  
 
-        logging.info("Start processing and uploading files.")
-        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
+    # event['data'] содержит сообщение в формате base64.  
+    # Декодируем это сообщение .  
+    if 'data' in event:  
+        base64_message = event['data'] 
+        # проверяем, является ли 'data' уже строкой 
+        if not isinstance(base64_message, str): 
+            base64_message = base64_message.encode('utf-8')  # make sure we're getting the message from event['data']  
+        decoded_message = base64.b64decode(base64_message).decode('utf-8')  
+        data_file_path, key_filename, spreadsheet_id = decoded_message.split(',')  
+    else:  
+        logging.error("No data provided.")  
+        return 'No data provided.'  
 
-        if os.path.isfile(data_file_path):
-            os.remove(data_file_path)
-        else:
-            logging.error(f'Error: {escape(data_file_path)} file not found.')
-            return f'Error: {escape(data_file_path)} file not found.'
-    except requests.RequestException as e:
-        logging.error(f'Request exception: {escape(e)}.')
-        return f'Error while performing request: {escape(e)}.'
-    except IOError as e:
-        logging.error(f'IO Error: {escape(e)}.')
-        return f'Error while writing file: {escape(e)}.'
-    except Exception as e:
-        logging.error(f'Unexpected error: {escape(e)}.')
-        return f'Unexpected error occurred: {escape(e)}.'
-    logging.info("File successfully uploaded.")
+    session = requests.Session()  
+    try:  
+        logging.info("Start getting credentials.")  
+        credentials = get_credentials(key_filename) 
+
+        logging.info("Start processing and uploading files.") 
+        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name) 
+
+        if os.path.isfile(data_file_path): 
+            os.remove(data_file_path) 
+        else: 
+            logging.error(f'Error: {escape(data_file_path)} file not found.') 
+            return f'Error: {escape(data_file_path)} file not found.' 
+    except requests.RequestException as e: 
+        logging.error(f'Request exception: {escape(e)}.') 
+        return f'Error while performing request: {escape(e)}.' 
+    except IOError as e: 
+        logging.error(f'IO Error: {escape(e)}.') 
+        return f'Error while writing file: {escape(e)}.' 
+    except Exception as e: 
+        logging.error(f'Unexpected error: {escape(e)}.') 
+        return f'Unexpected error occurred: {escape(e)}.' 
+      
+    logging.info("File successfully uploaded.") 
     return 'File successfully uploaded.'
 
 def get_credentials(key_filename):
