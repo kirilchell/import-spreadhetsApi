@@ -117,7 +117,7 @@ def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet
             chunk = chunk[header]  
             chunk = chunk.astype(str)  
 
-            upload_to_gsheetsgapi(credentials, chunk, spreadsheet_id) 
+            append_datagapi(credentials, chunk, spreadsheet_id) 
 
             logging.info("Chunk uploaded.")
 
@@ -160,30 +160,15 @@ def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet
         logging.info("Done processing and uploading files.")
 
 
-def upload_to_gsheetsgapi(credentials, chunk, spreadsheet_id): 
-
-    for i, chunk in enumerate(chunks): 
-        
-        try:
+def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
+    print("Data appended.")
             logging.info(f"Authorizing credentials account: {credentials.service_account_email}")
-            service_sheet = build('sheets', 'v4', credentials=credentials) 
-        except Exception as e:
-            logging.error(f"Error authorizing credentials: {e}")
-            continue
-        try:
-            print("Appending data to spreadsheet...") 
+            service_sheet = build('sheets', 'v4', credentials=credentials)
+            sheet = service.spreadsheets()
+            spreadsheet = sheet.get(spreadsheetId=spreadsheet_id).execute()
             worksheet = spreadsheet.worksheet("transit")
-            #worksheet_name = worksheet.title 
-            worksheet_id = worksheet.id  # get the worksheet ID from the worksheet object 
-            append_datagapi(chunk, service_sheet, spreadsheet_id, worksheet_id, worksheet) 
-            print("Data appended.") 
-        except Exception as e: 
-            logging.error(f"Error appending data to spreadsheet: {e}")  
-            continue
-    print("Done uploading files.") 
-    return spreadsheet_id
-
-def append_datagapi(df, service_sheet, spreadsheet_id, worksheet_id, worksheet,  chunk_size=40000):
+            worksheet_id = worksheet
+  
     # Получаем текущее количество заполненных строк на листе
     # response = service_sheet.spreadsheets().values().get(
     #    spreadsheetId=spreadsheet_id,
@@ -212,3 +197,4 @@ def append_datagapi(df, service_sheet, spreadsheet_id, worksheet_id, worksheet, 
             logging.error(f"Error appending chunk {i+1} to the worksheet: {e}")
             continue
         time.sleep(1)
+        return spreadsheet_id
