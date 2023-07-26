@@ -29,6 +29,7 @@ chunksize = 40000
 bucket_name = 'csv-chunk'
 
 def main(event, context):
+    logging.info("Start main function.")
     # event['data'] содержит сообщение в формате base64.
     # Декодируем это сообщение .
     if 'data' in event:
@@ -36,50 +37,57 @@ def main(event, context):
         decoded_message = base64.b64decode(base64_message).decode('utf-8')
         data_file_path, key_filename, spreadsheet_id = decoded_message.split(',')
     else:
+        logging.error("No data provided.")
         return 'No data provided.'
-    
+
     session = requests.Session()
     try:
+        logging.info("Start getting credentials.")
         credentials = get_credentials(key_filename)
 
-       process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id)
+        logging.info("Start processing and uploading files.")
+        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id)
 
         if os.path.isfile(data_file_path):
             os.remove(data_file_path)
         else:
-            return 'Ошибка: %s файл не найден' % escape(data_file_path)
+            logging.error(f'Error: {escape(data_file_path)} file not found.')
+            return f'Error: {escape(data_file_path)} file not found.'
     except requests.RequestException as e:
-        return 'Ошибка при выполнении запроса: %s.' % escape(e)
-
+        logging.error(f'Request exception: {escape(e)}.')
+        return f'Error while performing request: {escape(e)}.'
     except IOError as e:
-        return 'Ошибка при записи файла: %s.' % escape(e)
-
+        logging.error(f'IO Error: {escape(e)}.')
+        return f'Error while writing file: {escape(e)}.'
     except Exception as e:
-        return 'Произошла непредвиденная ошибка: %s.' % escape(e)
+        logging.error(f'Unexpected error: {escape(e)}.')
+        return f'Unexpected error occurred: {escape(e)}.'
+    logging.info("File successfully uploaded.")
+    return 'File successfully uploaded.'
 
-    return 'Файл успешно загружен.'
+def get_credentials(key_filename):
+    logging.info("Start getting credentials.")
+    # Создайте клиент Cloud Storage.
+    storage_client = storage.Client()
 
-def get_credentials(key_filename): 
-     # Создайте клиент Cloud Storage. 
-     storage_client = storage.Client() 
-  
-     # Получите объект Blob для файла ключа сервисного аккаунта. 
-     bucket = storage_client.get_bucket('ia_sam') 
-     blob = bucket.blob(key_filename) 
-  
-     # Скачайте JSON файл ключа сервисного аккаунта. 
-     key_json_string = blob.download_as_text() 
-  
-     # Загрузите ключ сервисного аккаунта из JSON строки. 
-     key_dict = json.loads(key_json_string) 
-  
-     # Создайте учетные данные из ключа сервисного аккаунта. 
-     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 
-               'https://www.googleapis.com/auth/drive.file'] 
-     credentials = service_account.Credentials.from_service_account_info( 
-         key_dict, scopes=SCOPES) 
-  
-     return credentials
+    # Получите объект Blob для файла ключа сервисного аккаунта.
+    bucket = storage_client.get_bucket('ia_sam')
+    blob = bucket.blob(key_filename)
+
+    # Скачайте JSON файл ключа сервисного аккаунта.
+    key_json_string = blob.download_as_text()
+
+    # Загрузите ключ сервисного аккаунта из JSON строки.
+    key_dict = json.loads(key_json_string)
+
+    # Создайте учетные данные из ключа сервисного аккаунта.
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
+              'https://www.googleapis.com/auth/drive.file']
+    credentials = service_account.Credentials.from_service_account_info(
+        key_dict, scopes=SCOPES)
+
+    logging.info("Credentials received successfully.")
+    return credentials
 
 def read_csv_gcs(bucket_name, blob_name): 
     storage_client = storage.Client() 
