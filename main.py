@@ -23,7 +23,7 @@ from google.cloud import storage
 from google.cloud import pubsub_v1
 import base64
 
-chunkssize = 40000
+chunksize = 40000
 
 def main(event, context):
     # event['data'] содержит сообщение в формате base64.
