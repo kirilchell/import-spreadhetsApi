@@ -28,24 +28,27 @@ from io import StringIO
 chunksize = 40000
 bucket_name = 'csv-chunk'
 
-def main(event, context):
-    logging.info(f"Event: {event}")
-    logging.info(f"context: {context}")
-    logging.info("Start main function.")
-    # event['data'] содержит сообщение в формате base64.
-    # Декодируем это сообщение .
-    if 'data' in event:
-        base64_message = event['data'].encode('utf-8')  # make sure we're getting the message from event['data']
-        decoded_message = base64.b64decode(base64_message).decode('utf-8')
-        data_file_path, key_filename, spreadsheet_id = decoded_message.split(',')
-    else:
-        logging.error("No data provided.")
-        return 'No data provided.'
-
-    session = requests.Session()
-    try:
-        logging.info("Start getting credentials.")
-        credentials = get_credentials(key_filename)
+def main(event, context): 
+     logging.info(f"Event: {event}") 
+     logging.info(f"context: {context}") 
+     logging.info("Start main function.") 
+     # event['data'] содержит сообщение в формате base64. 
+     # Декодируем это сообщение . 
+     if 'data' in event: 
+         base64_message = event['data']
+         # проверяем, является ли 'data' уже строкой
+         if not isinstance(base64_message, str):
+             base64_message = base64_message.encode('utf-8')  # make sure we're getting the message from event['data'] 
+         decoded_message = base64.b64decode(base64_message).decode('utf-8') 
+         data_file_path, key_filename, spreadsheet_id = decoded_message.split(',') 
+     else: 
+         logging.error("No data provided.") 
+         return 'No data provided.' 
+  
+     session = requests.Session() 
+     try: 
+         logging.info("Start getting credentials.") 
+         credentials = get_credentials(key_filename)
 
         logging.info("Start processing and uploading files.")
         process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
