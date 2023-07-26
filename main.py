@@ -26,6 +26,7 @@ from io import StringIO
 
 
 chunksize = 40000
+bucket_name = 'csv-chunk'
 
 def main(event, context):
     # event['data'] содержит сообщение в формате base64.
@@ -95,7 +96,6 @@ def read_csv_gcs(bucket_name, blob_name):
 def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name):  
     try:  
         header = None  
-        chunksize = 40000 
 
         df = read_csv_gcs(bucket_name, data_file_path)
 
