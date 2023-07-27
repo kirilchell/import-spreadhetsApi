@@ -12,3 +12,5 @@ gdown
 gspread
 chardet
 google-cloud-pubsub
+functions-framework
+cloudevents
