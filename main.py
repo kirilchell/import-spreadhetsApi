@@ -33,7 +33,7 @@ def main(event, context):
     # event['data'] содержит сообщение в формате base64.   
     # Декодируем это сообщение .   
     if 'data' in event:   
-        message = event['data']  
+        message = base64.b64decode(event['data']).decode('utf-8')  
         logging.info(f"Message: {message}")
         # проверяем, является ли 'data' уже строкой  
         if isinstance(message, str):  
