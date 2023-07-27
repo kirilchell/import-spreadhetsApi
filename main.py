@@ -24,21 +24,20 @@ from google.cloud import pubsub_v1
 import base64
 from io import StringIO
 from html import escape
+from cloudevents.http import CloudEvent 
+import functions_framework 
+
 
 chunksize = 40000
 bucket_name = 'csv-chunk'
 
 
-def callback(message: pubsub_v1.subscriber.message.Message) -> None:
-    data = base64.b64decode(message.data).decode('utf-8')
+
+@functions_framework.cloud_event
+def main(cloud_event: CloudEvent): 
+    data = base64.b64decode(cloud_event.data["message"]["data"]).decode('utf-8')
     logging.info(f"Data: {data}")
     data_file_path, key_filename, spreadsheet_id = data.split(',')
-    message.ack()
-    return data_file_path, key_filename, spreadsheet_id
-
-def main(message: pubsub_v1.subscriber.message.Message, context):
-    data_file_path, key_filename, spreadsheet_id = callback(message)
-
     session = requests.Session()
     try:
         logging.info("Start getting credentials.")
