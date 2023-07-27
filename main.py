@@ -23,54 +23,47 @@ from google.cloud import storage
 from google.cloud import pubsub_v1
 import base64
 from io import StringIO
-
+from html import escape
 
 chunksize = 40000
 bucket_name = 'csv-chunk'
 
-def main(event, context):     
 
-    # event['data'] содержит сообщение в формате base64.   
-    # Декодируем это сообщение .   
-    if 'data' in event:   
-        message = base64.b64decode(event['data']).decode('utf-8')  
-        logging.info(f"Message: {message}")
-        # проверяем, является ли 'data' уже строкой  
-        if isinstance(message, str):  
-            data_file_path, key_filename, spreadsheet_id = message.split(',')   
-        else:  
-            logging.error("Message is not a string.")   
-            return 'Error: message is not a string.'  
-    else:   
-        logging.error("No data provided.")   
-        return 'No data provided.'   
+def callback(message: pubsub_v1.subscriber.message.Message) -> None:
+    data = base64.b64decode(message.data).decode('utf-8')
+    logging.info(f"Data: {data}")
+    data_file_path, key_filename, spreadsheet_id = data.split(',')
+    message.ack()
+    return data_file_path, key_filename, spreadsheet_id
 
-    session = requests.Session()   
-    try:   
-        logging.info("Start getting credentials.")   
-        credentials = get_credentials(key_filename)  
+def main(message: pubsub_v1.subscriber.message.Message, context):
+    data_file_path, key_filename, spreadsheet_id = callback(message)
 
-        logging.info("Start processing and uploading files.")  
-        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)  
+    session = requests.Session()
+    try:
+        logging.info("Start getting credentials.")
+        credentials = get_credentials(key_filename)
 
-        if os.path.isfile(data_file_path):  
-            os.remove(data_file_path)  
-        else:  
-            logging.error(f'Error: {escape(data_file_path)} file not found.')  
-            return f'Error: {escape(data_file_path)} file not found.'  
-    except requests.RequestException as e:  
-        logging.error(f'Request exception: {escape(e)}.')  
-        return f'Error while performing request: {escape(e)}.'  
-    except IOError as e:  
-        logging.error(f'IO Error: {escape(e)}.')  
-        return f'Error while writing file: {escape(e)}.'  
+        logging.info("Start processing and uploading files.")
+        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
+
+        if os.path.isfile(data_file_path):
+            os.remove(data_file_path)
+        else:
+            logging.error(f'Error: {escape(data_file_path)} file not found.')
+            return f'Error: {escape(data_file_path)} file not found.'
+    except requests.RequestException as e:
+        logging.error(f'Request exception: {escape(e)}.')
+        return f'Error while performing request: {escape(e)}.'
+    except IOError as e:
+        logging.error(f'IO Error: {escape(e)}.')
+        return f'Error while writing file: {escape(e)}.'
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
-        return 'An error occurred.'  
+        return 'An error occurred.'
 
-    logging.info("File successfully uploaded.")  
+    logging.info("File successfully uploaded.")
     return 'File successfully uploaded.'
-
 
 def get_credentials(key_filename):
     logging.info("Start getting credentials.")
