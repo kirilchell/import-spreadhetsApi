@@ -66,9 +66,9 @@ def main(event, context):
     except IOError as e:  
         logging.error(f'IO Error: {escape(e)}.')  
         return f'Error while writing file: {escape(e)}.'  
-    except Exception as e:  
-        logging.error(f'Unexpected error: {escape(e)}.')  
-        return f'Unexpected error occurred: {escape(e)}.'  
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
+        return 'An error occurred.'  
 
     logging.info("File successfully uploaded.")  
     return 'File successfully uploaded.'
