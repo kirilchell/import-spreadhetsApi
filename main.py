@@ -28,15 +28,13 @@ from io import StringIO
 chunksize = 40000
 bucket_name = 'csv-chunk'
 
-def main(event, context):   
-    logging.info(f"Event: {event}")   
-    logging.info(f"context: {context}")   
-    logging.info("Start main function.")   
+def main(event, context):     
 
     # event['data'] содержит сообщение в формате base64.   
     # Декодируем это сообщение .   
     if 'data' in event:   
         message = event['data']  
+        logging.info(f"Message: {message}")
         # проверяем, является ли 'data' уже строкой  
         if isinstance(message, str):  
             data_file_path, key_filename, spreadsheet_id = message.split(',')   
