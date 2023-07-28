@@ -35,7 +35,7 @@ bucket_name = 'csv-chunk'
 
 @functions_framework.cloud_event
 def main(cloud_event: CloudEvent): 
-    data = base64.b64decode(cloud_event.data["message"]["data"]).decode('utf-8')
+    data = cloud_event.data["message"]["data"]
     logging.info(f"Data: {data}")
     data_file_path, key_filename, spreadsheet_id = data.split(',')
     session = requests.Session()
