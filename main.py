@@ -47,11 +47,6 @@ def main(cloud_event):
         logging.info("Start processing and uploading files.")
         #process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
 
-        if os.path.isfile(data_file_path):
-            os.remove(data_file_path)
-        else:
-            logging.error(f'Error: {escape(data_file_path)} file not found.')
-            return f'Error: {escape(data_file_path)} file not found.'
     except requests.RequestException as e:
         logging.error(f'Request exception: {escape(e)}.')
         return f'Error while performing request: {escape(e)}.'
