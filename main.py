@@ -35,17 +35,17 @@ bucket_name = 'csv-chunk'
 
 @functions_framework.cloud_event
 def main(cloud_event): 
-    print(base64.b64decode(cloud_event.data["message"]["data"]))
-    data = base64.b64decode(cloud_event.data["message"]["data"])
+    print(base64.b64decode(cloud_event.data["message"]["data"]).decode('utf-8'))
+    data = base64.b64decode(cloud_event.data["message"]["data"]).decode('utf-8')
     logging.info(f"Data: {data}")
     data_file_path, key_filename, spreadsheet_id = data.split(',')
-    session = requests.Session()
+    #session = requests.Session()
     try:
         logging.info("Start getting credentials.")
-        credentials = get_credentials(key_filename)
+        #credentials = get_credentials(key_filename)
 
         logging.info("Start processing and uploading files.")
-        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
+        #process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
 
         if os.path.isfile(data_file_path):
             os.remove(data_file_path)
