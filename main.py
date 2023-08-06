@@ -45,7 +45,7 @@ def main(cloud_event):
         credentials = get_credentials(key_filename)
 
         logging.info("Start processing and uploading files.")
-        #process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
+        process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
 
     except requests.RequestException as e:
         logging.error(f'Request exception: {escape(e)}.')
@@ -94,10 +94,10 @@ def read_csv_gcs(bucket_name, blob_name):
     return pd.read_csv(StringIO(content))
 
 def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name):  
-    logging.info("Start processing and uploading files.")
+    print("Start processing and uploading files.")
     try:  
         header = None  
-        logging.info("Reading CSV file.")
+        print("Reading CSV file.")
         df = read_csv_gcs(bucket_name, data_file_path)
         logging.info("CSV file read successfully.")
   
