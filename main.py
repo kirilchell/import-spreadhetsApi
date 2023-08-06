@@ -42,7 +42,7 @@ def main(cloud_event):
     #session = requests.Session()
     try:
         print("Start getting credentials.")
-        #credentials = get_credentials(key_filename)
+        credentials = get_credentials(key_filename)
 
         logging.info("Start processing and uploading files.")
         #process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name)
@@ -61,7 +61,7 @@ def main(cloud_event):
     return 'File successfully uploaded.'
 
 def get_credentials(key_filename):
-    logging.info("Start getting credentials.")
+    print("Start getting credentials.")
     # Создайте клиент Cloud Storage.
     storage_client = storage.Client()
 
@@ -81,7 +81,7 @@ def get_credentials(key_filename):
     credentials = service_account.Credentials.from_service_account_info(
         key_dict, scopes=SCOPES)
 
-    logging.info("Credentials received successfully.")
+    print("Credentials received successfully.")
     return credentials
 
 def read_csv_gcs(bucket_name, blob_name):
