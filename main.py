@@ -89,7 +89,7 @@ def read_csv_gcs(bucket_name, blob_name):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = storage.Blob(blob_name, bucket)
-    content = blob.download_as_text().decode('utf-8')
+    content = blob.download_as_text()
     logging.info("CSV file read successfully.")
     return pd.read_csv(StringIO(content))
 
