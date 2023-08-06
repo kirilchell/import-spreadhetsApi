@@ -41,7 +41,7 @@ def main(cloud_event):
     data_file_path, key_filename, spreadsheet_id = data.split(',')
     #session = requests.Session()
     try:
-        logging.info("Start getting credentials.")
+        print("Start getting credentials.")
         #credentials = get_credentials(key_filename)
 
         logging.info("Start processing and uploading files.")
