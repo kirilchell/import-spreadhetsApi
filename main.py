@@ -29,7 +29,7 @@ from cloudevents.http import CloudEvent
 import functions_framework 
 
 
-chunksize = 40000
+chunksize = 200000
 bucket_name = 'csv-chunk'
 
 
