@@ -1,6 +1,7 @@
 import os 
 import json 
 import logging 
+logging.basicConfig(level=logging.INFO)
 import pandas as pd 
 import numpy as np 
 import requests 
