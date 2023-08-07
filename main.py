@@ -29,7 +29,7 @@ from cloudevents.http import CloudEvent
 import functions_framework 
 
 
-chunksize = 200000
+chunksize = 80000
 bucket_name = 'csv-chunk'
 
 
@@ -85,42 +85,40 @@ def get_credentials(key_filename):
     print("Credentials received successfully.")
     return credentials
 
-def read_csv_gcs(bucket_name, blob_name):
-    logging.info("Reading CSV file from Google Cloud Storage.")
+def read_csv_gcs(bucket_name, blob_name, chunksize=80000):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = storage.Blob(blob_name, bucket)
     content = blob.download_as_text()
-    logging.info("CSV file read successfully.")
-    return pd.read_csv(StringIO(content))
+    
+    # Создаем генератор, который будет возвращать чанки данных
+    chunks = pd.read_csv(StringIO(content), chunksize=chunksize)
+    return chunks
 
 def process_and_upload_files(data_file_path, chunksize, credentials, spreadsheet_id, bucket_name):  
     print("Start processing and uploading files.")
-    try:  
-        header = None  
-        print("Reading CSV file.")
-        df = read_csv_gcs(bucket_name, data_file_path)
-        logging.info("CSV file read successfully.")
+    header = None
+    logging.info("Beginning chunk processing.")
+    
+    chunks_generator = read_csv_gcs(bucket_name, data_file_path)
+    for chunk_id, chunk in enumerate(chunks_generator):
+        logging.info(f'Processing chunk number: {chunk_id}')
   
-        logging.info("Beginning chunk processing.")
-        for chunk_id, chunk in enumerate(np.array_split(df, chunksize)):  
-            logging.info(f'Processing chunk number: {chunk_id}')
+        if header is None:  
+            logging.info("Processing header.")
+            header = chunk.columns.values[:8].tolist() + ['Инфо Магазин']
+            logging.info("Header processed.")
   
-            if header is None:  
-                logging.info("Processing header.")
-                header = chunk.columns.values[:8].tolist() + ['Инфо Магазин']
-                logging.info("Header processed.")
-  
-            logging.info("Processing chunk data.")
-            chunk['Инфо Магазин'] = chunk.iloc[:, 8:].apply(lambda row: '_'.join(row.dropna().astype(str)), axis=1)
-            logging.info("Chunk data processed.")
-            chunk = chunk[header]
-            chunk = chunk.astype(str)
+        logging.info("Processing chunk data.")
+        chunk['Инфо Магазин'] = chunk.iloc[:, 8:].apply(lambda row: '_'.join(row.dropna().astype(str)), axis=1)
+        logging.info("Chunk data processed.")
+        chunk = chunk[header]
+        chunk = chunk.astype(str)
 
-            append_datagapi(credentials, chunk, spreadsheet_id)
-            logging.info("Chunk uploaded.")
-    finally:
-        logging.info("Done processing and uploading files.")
+        append_datagapi(credentials, chunk, spreadsheet_id)
+        logging.info("Chunk uploaded.")
+
+    logging.info("Done processing and uploading files.")
 
 def append_datagapi(credentials, chunk, spreadsheet_id, chunk_size=40000):
     logging.info(f"Authorizing credentials account: {credentials.service_account_email}")
